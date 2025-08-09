@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Loading Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Loading Test</h1>
+    <p>This page tests the image loading functionality of the game.</p>
+    
+    <div id="results">
+        <h2>Test Results:</h2>
+    </div>
+    
+    <canvas id="testCanvas" width="200" height="200"></canvas>
+
+    <script src="asset.js"></script>
+    <script>
+        // Test function to validate image loading
+        async function testImageLoading() {
+            const results = document.getElementById('results');
+            
+            function addResult(message, type) {
+                const div = document.createElement('div');
+                div.className = `status ${type}`;
+                div.textContent = message;
+                results.appendChild(div);
+            }
+            
+            // Test 1: Check if Assets object exists
+            if (typeof Assets !== 'undefined') {
+                addResult('✓ Assets manager is available', 'success');
+            } else {
+                addResult('✗ Assets manager is not available', 'error');
+                return;
+            }
+            
+            // Test 2: Wait for assets to load
+            addResult('Loading assets...', 'info');
+            
+            try {
+                await Assets.getAllLoadingPromises();
+                const stats = Assets.getLoadingStats();
+                
+                if (stats.loaded > 0) {
+                    addResult(`✓ Assets loaded: ${stats.loaded}/${stats.total} successful, ${stats.errors} errors`, 'success');
+                } else {
+                    addResult(`⚠ No assets loaded successfully: ${stats.errors} errors`, 'warning');
+                }
+                
+                // Test 3: Try to get specific assets
+                const officeImg = Assets.get('background', 'office');
+                const standImg = Assets.get('character', 'stand');
+                const walkImg = Assets.get('character', 'walk');
+                
+                if (officeImg) {
+                    addResult('✓ Office background image is available', 'success');
+                } else {
+                    addResult('✗ Office background image failed to load', 'error');
+                }
+                
+                if (standImg) {
+                    addResult('✓ Character stand image is available', 'success');
+                } else {
+                    addResult('✗ Character stand image failed to load', 'error');
+                }
+                
+                if (walkImg) {
+                    addResult('✓ Character walk image is available', 'success');
+                } else {
+                    addResult('✗ Character walk image failed to load', 'error');
+                }
+                
+                // Test 4: Try to draw an image to canvas
+                const canvas = document.getElementById('testCanvas');
+                const ctx = canvas.getContext('2d');
+                
+                if (standImg) {
+                    ctx.drawImage(standImg, 10, 10, 50, 50);
+                    addResult('✓ Successfully drew character image to test canvas', 'success');
+                }
+                
+                if (walkImg) {
+                    ctx.drawImage(walkImg, 70, 10, 50, 50);
+                    addResult('✓ Successfully drew walk animation image to test canvas', 'success');
+                }
+                
+            } catch (error) {
+                addResult(`✗ Error during asset loading: ${error.message}`, 'error');
+            }
+        }
+        
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            testImageLoading();
+        });
+    </script>
+</body>
+</html>

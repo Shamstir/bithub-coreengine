@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Style Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Pokemon Style Game</h1>
+    <div class="controls">
+        <p><strong>Controls:</strong> WASD or Arrow Keys to move, C to toggle collision overlay</p>
+        <p><strong>Click on canvas</strong> to see pixel colors (useful for map creation)</p>
+    </div>
+    
+    <div class="debug-info">
+        <p>Image Status: <span id="imageStatus">Not loaded</span></p>
+        <p>Collision System: <span id="collisionStatus">Matrix-based</span></p>
+    </div>
+    
+    <div id="gameContainer" style="position: relative; width: 100%; max-width: 1200px; height: 700px; background-image: url('office.png'); background-size: contain; background-repeat: no-repeat; background-position: center; margin: 0 auto; border: 2px solid #333;">
+        
+        <div id="collisionPopup" class="popup">
+            <p>Connect?</p>
+            <button id="yesButton">Yes</button>
+            <button id="noButton">No</button>
+        </div>
+        <div id="log-container"></div>
+    </div>
+
+    <!-- Scripts -->
+        <script src="asset.js"></script>
+        <script src="player.js"></script>
+        <script src="game.js"></script>
+        <script src="main.js"></script>
+        <script src="test-controller.js"></script>
+</body>
+</html>

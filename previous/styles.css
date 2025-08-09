@@ -1,0 +1,110 @@
+body {
+    margin: 0;
+    padding: 20px;
+    background: #2c3e50;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    color: white;
+    margin-bottom: 10px;
+}
+
+canvas {
+    border: 3px solid #34495e;
+    background: #ecf0f1;
+    image-rendering: pixelated;
+}
+
+.popup {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border: 2px solid #34495e;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 10;
+}
+
+.popup button {
+    margin: 10px;
+    padding: 8px 16px;
+    cursor: pointer;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+.popup button:hover {
+    background: #2980b9;
+}
+
+#log-container {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 300px;
+    height: 150px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 10px;
+    overflow-y: scroll;
+    font-family: monospace;
+    font-size: 10px;
+    border-radius: 4px;
+}
+
+.controls {
+    color: white;
+    margin: 10px 0;
+    text-align: center;
+}
+
+.controls p {
+    margin: 5px 0;
+}
+
+.debug-info {
+    color: white;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 14px;
+}
+
+.debug-info span {
+    font-weight: bold;
+    color: #3498db;
+}
+
+#imageUpload {
+    margin-left: 10px;
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid #34495e;
+}
+
+/* Scrollbar styling for log container */
+#log-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+#log-container::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+}
+
+#log-container::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+}
+
+#log-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.5);
+}
