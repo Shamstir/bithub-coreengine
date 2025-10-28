@@ -24,6 +24,8 @@ class Boundary {
     }
 }
 
+
+let dustEffects = [];
 class Teleport {
     static width = 32;
     static height = 32.5;
@@ -42,7 +44,7 @@ class Teleport {
 }
 
 class Sprite {
-    constructor({ position, velocity, image, frames = { max: 1 }, sprites = {} }) {
+    constructor({ position, velocity, image, frames = { max: 1 }, sprites = {},width,height}) {
         this.position = position
         this.image = image
         this.frames = { ...frames, val: 0, elapsed: 0 }
@@ -67,18 +69,18 @@ class Sprite {
             -this.position.x - this.width / 2,
             -this.position.y - this.height / 2
         )
-        
-        c.drawImage(
-            this.image,
-            this.frames.val * this.width,
-            0,
-            this.image.width / this.frames.max,
-            this.image.height,
-            this.position.x,
-            this.position.y,
-            this.image.width / this.frames.max,
-            this.image.height
-        )
+        const sourceFrameWidth = this.image.width / this.frames.max;
+    c.drawImage(
+        this.image,
+        this.frames.val * sourceFrameWidth,   // source x
+        0,                                    // source y
+        sourceFrameWidth,                     // source width
+        this.image.height,                    // source height
+        this.position.x,                      // destination x
+        this.position.y,                      // destination y
+        this.width,                           // Use the instance's width
+        this.height                           // Use the instance's height
+    )
         c.restore()
         
         if (!this.animate) return
@@ -93,6 +95,46 @@ class Sprite {
         }
     }
 }
+class DustEffect extends Sprite {
+    constructor({ position, image, frames = { max: 1 } }) {
+        super({ position, image, frames });
+        this.animate = true; 
+        this.isFinished = false;
+    }
+
+    draw() {
+        c.save();
+        
+const sourceFrameWidth = this.image.width / this.frames.max;
+c.drawImage(
+    this.image,
+    this.frames.val * sourceFrameWidth,  
+    0,                                   
+    sourceFrameWidth,                   
+    this.image.height,                    
+    this.position.x,                      
+    this.position.y,                      
+    this.width,                          
+    this.height                         
+);
+       
+        c.restore();
+        
+        if (this.frames.max > 1) {
+            this.frames.elapsed++;
+        }
+        
+        if (this.frames.elapsed % 5 === 0) {
+            if (this.frames.val < this.frames.max - 1) {
+                this.frames.val++;
+            } else {
+                this.isFinished = true; 
+            }
+        }
+    }
+}
+const dustImage = new Image();
+dustImage.src = './images/dust_animation.png'; 
 
 const boundaries = [];
 const teleports = [];
@@ -179,75 +221,150 @@ function drawTeleportAnimation() {
     c.restore();
 }
 
+// function handleTeleportation() {
+//     if (!player || teleportAnimating) return;
+    
+//     const currentTime = Date.now();
+//     if (currentTime - lastTeleportTime < TELEPORT_COOLDOWN_MS) {
+//         return;
+//     }
+    
+//     for (let i = 0; i < teleports.length; i++) {
+//         const teleport = teleports[i];
+        
+//         const collision = rectangularCollision({
+//             rectangle1: player,
+//             rectangle2: teleport
+//         });
+        
+//         if (collision) {
+//             let destinationId;
+//             switch(teleport.teleportId) {
+//                 case 44:
+//                     if(lastKey=='w')
+//                         destinationId = 55;
+                    
+//                     break;
+//                 case 55:
+//                     if(lastKey=='s')
+//                         destinationId = 44;
+                    
+//                     break;
+//                 case 66:
+//                     if(lastKey=='w')
+//                         destinationId = 77;
+                    
+//                     break;
+//                 case 77:
+//                     if(lastKey=='s')
+//                         destinationId = 66;
+                    
+//                     break;
+//                 default:
+//                     continue;
+//             }
+            
+//             const destination = teleports.find(t => t.teleportId === destinationId);
+//             if (destination) {
+//                 teleportAnimating = true;
+//                 createTeleportParticles(player.position.x + player.width/2, player.position.y + player.height/2);
+                
+//                 setTimeout(() => {
+//                     const playerCenterX = player.position.x + player.width / 2;
+//                     const playerCenterY = player.position.y + player.height / 2;
+                    
+//                     const destinationCenterX = destination.position.x + destination.width / 2;
+//                     const destinationCenterY = destination.position.y + destination.height / 2;
+                    
+//                     const offsetX = playerCenterX - destinationCenterX;
+//                     const offsetY = playerCenterY - destinationCenterY;
+                    
+//                     movables.forEach((movable) => {
+//                         if (movable) {
+//                             movable.position.x += offsetX;
+//                             movable.position.y += offsetY;
+//                         }
+//                     });
+                    
+//                     createTeleportParticles(player.position.x + player.width/2, player.position.y + player.height/2);
+//                     lastTeleportTime = currentTime;
+//                 }, 500);
+                
+//                 break;
+//             }
+//         }
+//     }
+// }
 function handleTeleportation() {
     if (!player || teleportAnimating) return;
-    
+
     const currentTime = Date.now();
     if (currentTime - lastTeleportTime < TELEPORT_COOLDOWN_MS) {
         return;
     }
-    
+
     for (let i = 0; i < teleports.length; i++) {
         const teleport = teleports[i];
-        
+
         const collision = rectangularCollision({
             rectangle1: player,
             rectangle2: teleport
         });
-        
+
         if (collision) {
             let destinationId;
-            switch(teleport.teleportId) {
+            switch (teleport.teleportId) {
                 case 44:
-                    if(lastKey=='w')
+                    if (lastKey == 'w')
                         destinationId = 55;
-                    
                     break;
                 case 55:
-                    if(lastKey=='s')
+                    if (lastKey == 's')
                         destinationId = 44;
-                    
                     break;
                 case 66:
-                    if(lastKey=='w')
+                    if (lastKey == 'w')
                         destinationId = 77;
-                    
                     break;
                 case 77:
-                    if(lastKey=='s')
+                    if (lastKey == 's')
                         destinationId = 66;
-                    
                     break;
                 default:
                     continue;
             }
-            
+
             const destination = teleports.find(t => t.teleportId === destinationId);
+
             if (destination) {
+                player.image = player.sprites.teleport;
+                player.frames.max = 4;
+                player.animate = true;
+
                 teleportAnimating = true;
-                createTeleportParticles(player.position.x + player.width/2, player.position.y + player.height/2);
-                
+                createTeleportParticles(player.position.x + player.width / 2, player.position.y + player.height / 2);
+
                 setTimeout(() => {
                     const playerCenterX = player.position.x + player.width / 2;
                     const playerCenterY = player.position.y + player.height / 2;
-                    
+
                     const destinationCenterX = destination.position.x + destination.width / 2;
                     const destinationCenterY = destination.position.y + destination.height / 2;
-                    
+
                     const offsetX = playerCenterX - destinationCenterX;
                     const offsetY = playerCenterY - destinationCenterY;
-                    
+
                     movables.forEach((movable) => {
                         if (movable) {
                             movable.position.x += offsetX;
                             movable.position.y += offsetY;
                         }
                     });
-                    
-                    createTeleportParticles(player.position.x + player.width/2, player.position.y + player.height/2);
+
+                    createTeleportParticles(player.position.x + player.width / 2, player.position.y + player.height / 2);
                     lastTeleportTime = currentTime;
                 }, 500);
-                
+
                 break;
             }
         }
@@ -259,10 +376,12 @@ const playerUpImage = new Image()
 const playerDownImage = new Image()
 const playerLeftImage = new Image()
 const playerRightImage = new Image()
+const teleportImage = new Image();
+teleportImage.src = './images/teleport.png';
 
 playerUpImage.src = './images/Pink_Monster_Walk_6.png'
 playerDownImage.src = './images/Pink_Monster_Walk_6.png'
-playerLeftImage.src = './images/left.jpeg'
+playerLeftImage.src = './images/Pink_Monster_Walk_6_left.png'
 playerRightImage.src = './images/Pink_Monster_Walk_6.png'
 
 let background
@@ -287,149 +406,302 @@ function rectangularCollision({ rectangle1, rectangle2 }) {
     )
 }
 
-function animate() {
-    window.requestAnimationFrame(animate)
+// function animate() {
+//     window.requestAnimationFrame(animate)
     
-    c.fillStyle = 'black'
-    c.fillRect(0, 0, canvas.width, canvas.height)
+//     c.fillStyle = 'black'
+//     c.fillRect(0, 0, canvas.width, canvas.height)
+    
+//     if (background) {
+//         background.draw()
+//     }
+    
+//     teleports.forEach(teleport => {
+//         teleport.draw()
+//     })
+    
+//     if (player) {
+//         player.draw()
+//     }
+    
+//     handleTeleportation()
+//     drawTeleportAnimation()
+    
+//     if (teleportAnimating) return;
+    
+//     let moving = true
+//     if (player) {
+//         player.animate = false
+//     }
+    
+//     if (player && keys.w.pressed && lastKey === 'w') {
+//         player.animate = true
+//         player.image = player.sprites.up
+        
+//         for (let i = 0; i < boundaries.length; i++) {
+//             const boundary = boundaries[i]
+//             if (
+//                 rectangularCollision({
+//                     rectangle1: player,
+//                     rectangle2: {
+//                         ...boundary,
+//                         position: {
+//                             x: boundary.position.x,
+//                             y: boundary.position.y + 3.25
+//                         }
+//                     }
+//                 })
+//             ) {
+//                 moving = false
+//                 break
+//             }
+//         }
+        
+//         if (moving) {
+//             movables.forEach(movable => {
+//                 if (movable) movable.position.y += 3.25
+//             })
+//         }
+//     } else if (player && keys.s.pressed && lastKey === 's') {
+        
+//         player.animate = true
+//         player.image = player.sprites.down
+        
+//         for (let i = 0; i < boundaries.length; i++) {
+//             const boundary = boundaries[i]
+//             if (
+//                 rectangularCollision({
+//                     rectangle1: player,
+//                     rectangle2: {
+//                         ...boundary,
+//                         position: {
+//                             x: boundary.position.x,
+//                             y: boundary.position.y - 3.25
+//                         }
+//                     }
+//                 })
+//             ) {
+//                 moving = false
+//                 break
+//             }
+//         }
+        
+//         if (moving) {
+//             movables.forEach(movable => {
+//                 if (movable) movable.position.y -= 3.25
+//             })
+//         }
+//     } else if (player && keys.a.pressed && lastKey === 'a') {
+//         player.animate = true
+//         player.image = player.sprites.left
+        
+//         for (let i = 0; i < boundaries.length; i++) {
+//             const boundary = boundaries[i]
+//             if (
+//                 rectangularCollision({
+//                     rectangle1: player,
+//                     rectangle2: {
+//                         ...boundary,
+//                         position: {
+//                             x: boundary.position.x + 3.25,
+//                             y: boundary.position.y
+//                         }
+//                     }
+//                 })
+//             ) {
+//                 moving = false
+//                 break
+//             }
+//         }
+        
+//         if (moving) {
+//             movables.forEach(movable => {
+//                 if (movable) movable.position.x += 3.25
+//             })
+//         }
+//     } else if (player && keys.d.pressed && lastKey === 'd') {
+//         player.animate = true
+//         player.image = player.sprites.right
+        
+//         for (let i = 0; i < boundaries.length; i++) {
+//             const boundary = boundaries[i]
+//             if (
+//                 rectangularCollision({
+//                     rectangle1: player,
+//                     rectangle2: {
+//                         ...boundary,
+//                         position: {
+//                             x: boundary.position.x - 3.25,
+//                             y: boundary.position.y
+//                         }
+//                     }
+//                 })
+//             ) {
+//                 moving = false
+//                 break
+//             }
+//         }
+        
+//         if (moving) {
+//             movables.forEach(movable => {
+//                 if (movable) movable.position.x -= 3.25
+//             })
+//         }
+//     }
+// }
+function animate() {
+    window.requestAnimationFrame(animate);
+    
+    c.fillStyle = 'black';
+    c.fillRect(0, 0, canvas.width, canvas.height);
     
     if (background) {
-        background.draw()
+        background.draw();
     }
+
+
+    dustEffects = dustEffects.filter(effect => !effect.isFinished);
+    dustEffects.forEach(effect => {
+        effect.draw();
+    });
     
     teleports.forEach(teleport => {
-        teleport.draw()
-    })
+        teleport.draw();
+    });
     
     if (player) {
-        player.draw()
+        player.draw();
     }
     
-    handleTeleportation()
-    drawTeleportAnimation()
+    handleTeleportation();
+    drawTeleportAnimation();
     
     if (teleportAnimating) return;
     
-    let moving = true
+    let moving = true;
     if (player) {
-        player.animate = false
+        player.animate = false;
     }
+
+ const createDustEffect = () => {
+    const dustFrames = 4;
+    const dustWidth = dustImage.width / dustFrames; 
+    
+    dustEffects.push(new DustEffect({
+        position: {
+            x: player.position.x + (player.width / 2) - (dustWidth / 2), 
+            
+            y: player.position.y + player.height - dustImage.height 
+        },
+        image: dustImage,
+        frames: { max: dustFrames }
+    }));
+};
     
     if (player && keys.w.pressed && lastKey === 'w') {
-        player.animate = true
-        player.image = player.sprites.up
+        player.animate = true;
+        player.image = player.sprites.up;
+        player.frames.max = 4;
         
         for (let i = 0; i < boundaries.length; i++) {
-            const boundary = boundaries[i]
+            const boundary = boundaries[i];
             if (
                 rectangularCollision({
                     rectangle1: player,
-                    rectangle2: {
-                        ...boundary,
-                        position: {
-                            x: boundary.position.x,
-                            y: boundary.position.y + 3.25
-                        }
-                    }
+                    rectangle2: { ...boundary, position: { x: boundary.position.x, y: boundary.position.y + 3.25 } }
                 })
             ) {
-                moving = false
-                break
+                moving = false;
+                break;
             }
         }
         
         if (moving) {
+            // moving dust
+            createDustEffect(); 
             movables.forEach(movable => {
-                if (movable) movable.position.y += 3.25
-            })
+                if (movable) movable.position.y += 3.25;
+            });
         }
     } else if (player && keys.s.pressed && lastKey === 's') {
-        
-        player.animate = true
-        player.image = player.sprites.down
+        player.animate = true;
+        player.image = player.sprites.down;
+        player.frames.max = 6;
         
         for (let i = 0; i < boundaries.length; i++) {
-            const boundary = boundaries[i]
+            const boundary = boundaries[i];
             if (
                 rectangularCollision({
                     rectangle1: player,
-                    rectangle2: {
-                        ...boundary,
-                        position: {
-                            x: boundary.position.x,
-                            y: boundary.position.y - 3.25
-                        }
-                    }
+                    rectangle2: { ...boundary, position: { x: boundary.position.x, y: boundary.position.y - 3.25 } }
                 })
             ) {
-                moving = false
-                break
+                moving = false;
+                break;
             }
         }
         
         if (moving) {
+            //moving dust
+            createDustEffect();
             movables.forEach(movable => {
-                if (movable) movable.position.y -= 3.25
-            })
+                if (movable) movable.position.y -= 3.25;
+            });
         }
     } else if (player && keys.a.pressed && lastKey === 'a') {
-        player.animate = true
-        player.image = player.sprites.left
+        player.animate = true;
+        player.image = player.sprites.left;
+        player.frames.max = 6;
         
         for (let i = 0; i < boundaries.length; i++) {
-            const boundary = boundaries[i]
+            const boundary = boundaries[i];
             if (
                 rectangularCollision({
                     rectangle1: player,
-                    rectangle2: {
-                        ...boundary,
-                        position: {
-                            x: boundary.position.x + 3.25,
-                            y: boundary.position.y
-                        }
-                    }
+                    rectangle2: { ...boundary, position: { x: boundary.position.x + 3.25, y: boundary.position.y } }
                 })
             ) {
-                moving = false
-                break
+                moving = false;
+                break;
             }
         }
         
         if (moving) {
+            // moving dust
+            createDustEffect();
             movables.forEach(movable => {
-                if (movable) movable.position.x += 3.25
-            })
+                if (movable) movable.position.x += 3.25;
+            });
         }
     } else if (player && keys.d.pressed && lastKey === 'd') {
-        player.animate = true
-        player.image = player.sprites.right
+        player.animate = true;
+        player.image = player.sprites.right;
+        player.frames.max = 6;
         
         for (let i = 0; i < boundaries.length; i++) {
-            const boundary = boundaries[i]
+            const boundary = boundaries[i];
             if (
                 rectangularCollision({
                     rectangle1: player,
-                    rectangle2: {
-                        ...boundary,
-                        position: {
-                            x: boundary.position.x - 3.25,
-                            y: boundary.position.y
-                        }
-                    }
+                    rectangle2: { ...boundary, position: { x: boundary.position.x - 3.25, y: boundary.position.y } }
                 })
             ) {
-                moving = false
-                break
+                moving = false;
+                break;
             }
         }
         
         if (moving) {
+            //moving dust
+            createDustEffect();
             movables.forEach(movable => {
-                if (movable) movable.position.x -= 3.25
-            })
+                if (movable) movable.position.x -= 3.25;
+            });
         }
     }
 }
+const playerUpImage4Frames = new Image()
+playerUpImage4Frames.src = './images/Up.png'
 
 Promise.all([
     new Promise(resolve => {
@@ -447,7 +719,17 @@ Promise.all([
     }),
     new Promise(resolve => {
         playerRightImage.onload = resolve
+    }),
+    new Promise(resolve => {
+        dustImage.onload = resolve;
+    }),
+    new Promise(resolve => { 
+        playerUpImage4Frames.onload = resolve;
+    }),
+    new Promise(resolve => { 
+        teleportImage.onload = resolve;
     })
+    
 ]).then(() => {
     background = new Sprite({
         position: {
@@ -458,24 +740,25 @@ Promise.all([
     })
     
     player = new Sprite({
-        position: {
-            x: canvas.width / 2 - (playerUpImage.width / 6) / 2 - 30,
-            y: canvas.height / 2 - playerUpImage.height / 2 + 200
-        },
-        image: playerUpImage,
-        frames: {
-            max: 6
-        },
-        sprites: {
-            up: playerUpImage,
-            down: playerDownImage,
-            left: playerLeftImage,
-            right: playerRightImage
-        }
-    })
-    
-    player.width = playerUpImage.width / 6
-    player.height = playerUpImage.height
+    position: {
+        x: canvas.width / 2 - (playerDownImage.width / 6) / 2 - 30, 
+        y: canvas.height / 2 - playerDownImage.height / 2 + 200
+    },
+    image: playerDownImage,
+    frames: {
+        max: 6
+    },
+    sprites: {
+        up: playerUpImage4Frames, 
+        down: playerDownImage,
+        left: playerLeftImage,
+        right: playerRightImage,
+        teleport: teleportImage
+    }
+})
+    const playerScale=2.5;
+    player.width = (playerUpImage.width / 6)*playerScale;
+    player.height = playerUpImage.height*playerScale;
     
     movables = [background, ...boundaries, ...teleports]
     
